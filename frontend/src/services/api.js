@@ -41,7 +41,6 @@ export const videoApi = {
       const response = await axios.get(`${API_URL}/video`);
       return response.data;
     } catch (error) {
-      console.error("Error fetching videos:", error);
       throw error;
     }
   },
@@ -52,22 +51,26 @@ export const videoApi = {
       const response = await axios.get(`${API_URL}/video/${id}`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching video ${id}:`, error);
       throw error;
     }
   },
 
   // Save watched interval
-  saveWatchedInterval: async (videoId, startTime, endTime) => {
+  saveWatchedInterval: async (
+    videoId,
+    startTime,
+    endTime,
+    isCompletion = false
+  ) => {
     try {
       const response = await axios.post(`${API_URL}/video/watch`, {
         videoId,
         startTime,
         endTime,
+        isCompletion, // Flag to indicate if this is a completion marker
       });
       return response.data;
     } catch (error) {
-      console.error("Error saving watched interval:", error);
       throw error;
     }
   },
@@ -80,7 +83,6 @@ export const videoApi = {
       });
       return response.data;
     } catch (error) {
-      console.error(`Error fetching progress for video ${videoId}:`, error);
       throw error;
     }
   },
