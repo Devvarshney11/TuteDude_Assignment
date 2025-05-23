@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { videoApi } from "../services/api";
+
+// Helper function to format seconds to MM:SS
+const formatDuration = (seconds) => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+};
 
 const VideoPlayer = () => {
   const { id } = useParams();
@@ -294,92 +301,218 @@ const VideoPlayer = () => {
 
   // No longer need formatTime function since we're only showing percentage
 
+  // Loading state with skeleton UI
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-xl">Loading video...</div>
+      <div className="animate-pulse space-y-8">
+        <div className="flex items-center space-x-4">
+          <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
+          <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+        </div>
+
+        <div className="bg-gray-200 rounded-lg h-96"></div>
+
+        <div className="space-y-4">
+          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-        {error}
+      <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md">
+        <div className="flex items-center">
+          <span className="mr-2">⚠️</span>
+          <span>{error}</span>
+        </div>
+        <div className="mt-4">
+          <button onClick={() => navigate("/")} className="btn btn-primary">
+            Back to Courses
+          </button>
+        </div>
       </div>
     );
   }
 
   if (!video) {
     return (
-      <div className="text-center py-10">
+      <div className="text-center py-10 animate-fadeIn">
+        <div className="text-5xl mb-4">🎬</div>
         <h2 className="text-2xl font-bold mb-4">Video Not Found</h2>
-        <p className="text-gray-600 mb-4">
-          The requested video could not be found.
+        <p className="text-gray-600 mb-6">
+          The requested video could not be found or may have been removed.
         </p>
-        <button
-          onClick={() => navigate("/")}
-          className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded"
-        >
-          Back to Videos
+        <button onClick={() => navigate("/")} className="btn btn-primary">
+          Back to Courses
         </button>
       </div>
     );
   }
 
+  // Extract module name from title if it exists
+  let moduleName = "Web Development Fundamentals";
+  let videoTitle = video.title;
+  if (video.title.includes(":")) {
+    const parts = video.title.split(":");
+    moduleName = parts[0].trim();
+    videoTitle = parts.slice(1).join(":").trim();
+  }
+
   return (
-    <div>
-      <div className="mb-4">
-        <button
-          onClick={() => navigate("/")}
-          className="text-blue-500 hover:text-blue-700 flex items-center"
-        >
-          &larr; Back to Videos
-        </button>
+    <div className="animate-fadeIn">
+      {/* Breadcrumb navigation */}
+      <div className="mb-6 flex items-center text-sm text-gray-600">
+        <Link to="/" className="hover:text-indigo-600">
+          Courses
+        </Link>
+        <span className="mx-2">›</span>
+        <span className="text-gray-800">{moduleName}</span>
+        <span className="mx-2">›</span>
+        <span className="text-gray-800 truncate">{videoTitle}</span>
       </div>
 
-      <h1 className="text-2xl font-bold mb-4">{video.title}</h1>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main content - Video player */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="p-4 bg-gray-50 border-b">
+              <h1 className="text-2xl font-bold text-gray-800">{videoTitle}</h1>
+              <p className="text-gray-600 mt-1">
+                Module: {moduleName} • Duration:{" "}
+                {formatDuration(video.durationSeconds)}
+              </p>
+            </div>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-        {videoError ? (
-          <div className="bg-red-100 border border-red-400 text-red-700 p-4 text-center">
-            <p className="font-bold mb-2">Video playback error</p>
-            <p>
-              The video could not be loaded. It may be unavailable or in an
-              unsupported format.
-            </p>
+            <div className="relative">
+              {videoError ? (
+                <div className="bg-red-100 border border-red-400 text-red-700 p-8 text-center">
+                  <div className="text-4xl mb-4">⚠️</div>
+                  <p className="font-bold mb-2">Video playback error</p>
+                  <p className="mb-4">
+                    The video could not be loaded. It may be unavailable or in
+                    an unsupported format.
+                  </p>
+                  <button
+                    onClick={() => navigate("/")}
+                    className="btn btn-primary"
+                  >
+                    Back to Courses
+                  </button>
+                </div>
+              ) : (
+                <video
+                  ref={videoRef}
+                  className="w-full"
+                  controls
+                  onPlay={handlePlay}
+                  onPause={handlePause}
+                  onSeeked={handleSeeked}
+                  onEnded={handleEnded}
+                  onError={() => setVideoError(true)}
+                >
+                  <source src={video.url} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              )}
+            </div>
           </div>
-        ) : (
-          <video
-            ref={videoRef}
-            className="w-full"
-            controls
-            onPlay={handlePlay}
-            onPause={handlePause}
-            onSeeked={handleSeeked}
-            onEnded={handleEnded}
-            onError={() => setVideoError(true)}
-          >
-            <source src={video.url} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        )}
-      </div>
 
-      <div className="bg-white rounded-lg shadow-md p-4">
-        <h2 className="text-lg font-semibold mb-2">Progress</h2>
+          {/* Video description */}
+          <div className="bg-white rounded-xl shadow-md p-6 mt-6">
+            <h2 className="text-xl font-semibold mb-4">About this lesson</h2>
+            <p className="text-gray-700 mb-4">
+              This video is part of the {moduleName} module. Watch this lesson
+              to learn key concepts and techniques.
+            </p>
 
-        <div className="mb-2">
-          <div className="w-full bg-gray-200 rounded-full h-4">
-            <div
-              className="bg-blue-600 h-4 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            ></div>
+            <div className="flex items-center space-x-4 text-sm text-gray-600 mt-6 pt-4 border-t">
+              <div className="flex items-center">
+                <span className="mr-2">🕒</span>
+                <span>{formatDuration(video.durationSeconds)}</span>
+              </div>
+              <div className="flex items-center">
+                <span className="mr-2">📊</span>
+                <span>{progress}% complete</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="text-center text-sm text-gray-600">
-          <span>{progress}% complete</span>
+        {/* Sidebar - Progress and navigation */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-xl shadow-md p-6 sticky top-24">
+            <h2 className="text-lg font-semibold mb-4">Your Progress</h2>
+
+            {/* Progress circle */}
+            <div className="flex justify-center mb-6">
+              <div className="relative w-32 h-32">
+                <svg className="w-full h-full" viewBox="0 0 100 100">
+                  {/* Background circle */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    stroke="#e5e7eb"
+                    strokeWidth="8"
+                  />
+                  {/* Progress circle */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    stroke="#4f46e5"
+                    strokeWidth="8"
+                    strokeDasharray={`${(2 * Math.PI * 45 * progress) / 100} ${
+                      2 * Math.PI * 45
+                    }`}
+                    strokeDashoffset="0"
+                    transform="rotate(-90 50 50)"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-indigo-600">
+                    {progress}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="mb-6">
+              <div className="progress-bar">
+                <div
+                  className="progress-bar-fill progress-bar-fill-primary"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between text-xs text-gray-600 mt-1">
+                <span>0%</span>
+                <span>50%</span>
+                <span>100%</span>
+              </div>
+            </div>
+
+            {/* Navigation buttons */}
+            <div className="space-y-3">
+              <button
+                onClick={() => navigate("/")}
+                className="btn btn-outline w-full flex items-center justify-center"
+              >
+                <span className="mr-2">←</span> Back to LearnVista
+              </button>
+
+              {progress === 100 && (
+                <div className="bg-green-100 text-green-800 p-3 rounded-md text-center">
+                  <span className="font-medium">🎉 Lesson completed!</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
