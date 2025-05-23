@@ -31,26 +31,31 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 w-full max-w-full overflow-x-hidden ${
         isScrolled
           ? "bg-white text-gray-800 shadow-md"
           : "bg-gradient-to-r from-indigo-600 to-indigo-500 text-white"
       }`}
     >
-      <div className="container mx-auto px-4 py-3">
+      <div className="container mx-auto px-4 py-3 max-w-full">
         <div className="flex justify-between items-center">
           {/* Logo and Brand */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link
+            to="/"
+            className="flex items-center space-x-2 min-w-0 flex-shrink"
+          >
             <div
-              className={`text-2xl ${
+              className={`text-xl sm:text-2xl ${
                 isScrolled ? "text-indigo-600" : "text-white"
               }`}
             >
               📚
             </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold">LearnVista</span>
-              <span className="text-xs opacity-75">
+            <div className="flex flex-col min-w-0 truncate">
+              <span className="text-lg sm:text-xl font-bold truncate">
+                LearnVista
+              </span>
+              <span className="text-xs opacity-75 hidden xs:block">
                 Interactive Learning Platform
               </span>
             </div>
@@ -77,10 +82,10 @@ const Navbar = () => {
           {/* User Menu (Desktop) */}
           <div className="hidden md:block">
             {isAuthenticated ? (
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 lg:space-x-4">
+                <div className="flex items-center space-x-2 max-w-[150px] lg:max-w-[200px]">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    className={`w-7 h-7 lg:w-8 lg:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                       isScrolled
                         ? "bg-indigo-100 text-indigo-600"
                         : "bg-indigo-700 text-white"
@@ -88,11 +93,13 @@ const Navbar = () => {
                   >
                     {user?.username.charAt(0).toUpperCase()}
                   </div>
-                  <span className="font-medium">{user?.username}</span>
+                  <span className="font-medium text-sm lg:text-base truncate">
+                    {user?.username}
+                  </span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className={`btn ${
+                  className={`btn text-sm lg:text-base py-1.5 lg:py-2 px-3 lg:px-4 ${
                     isScrolled
                       ? "btn-outline"
                       : "bg-indigo-700 hover:bg-indigo-800 text-white"
@@ -104,7 +111,7 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/login"
-                className={`btn ${
+                className={`btn text-sm lg:text-base py-1.5 lg:py-2 px-3 lg:px-4 ${
                   isScrolled
                     ? "btn-primary"
                     : "bg-indigo-700 hover:bg-indigo-800 text-white"
@@ -132,13 +139,13 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 animate-fadeIn">
-            <div className="flex flex-col space-y-3">
+          <div className="md:hidden py-4 animate-fadeIn max-w-full overflow-x-hidden">
+            <div className="flex flex-col space-y-3 max-w-full">
               {isAuthenticated && (
                 <>
                   <Link
                     to="/"
-                    className="py-2 px-3 rounded hover:bg-indigo-700 hover:text-white"
+                    className="py-2 px-3 rounded hover:bg-indigo-700 hover:text-white text-sm sm:text-base"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Courses
@@ -148,10 +155,10 @@ const Navbar = () => {
               )}
 
               {isAuthenticated ? (
-                <div className="pt-2">
-                  <div className="flex items-center space-x-2 mb-3 px-3">
+                <div className="pt-2 max-w-full">
+                  <div className="flex items-center space-x-2 mb-3 px-3 max-w-full">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                         isScrolled
                           ? "bg-indigo-100 text-indigo-600"
                           : "bg-indigo-700 text-white"
@@ -159,11 +166,13 @@ const Navbar = () => {
                     >
                       {user?.username.charAt(0).toUpperCase()}
                     </div>
-                    <span className="font-medium">{user?.username}</span>
+                    <span className="font-medium text-sm sm:text-base truncate">
+                      {user?.username}
+                    </span>
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="w-full py-2 px-3 text-center rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                    className="w-full py-2 px-3 text-center rounded bg-indigo-600 text-white hover:bg-indigo-700 text-sm sm:text-base"
                   >
                     Logout
                   </button>
@@ -171,7 +180,7 @@ const Navbar = () => {
               ) : (
                 <Link
                   to="/login"
-                  className="w-full py-2 px-3 text-center rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                  className="w-full py-2 px-3 text-center rounded bg-indigo-600 text-white hover:bg-indigo-700 text-sm sm:text-base"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Login

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { videoApi } from "../services/api";
+import { Button, ProgressBar, ProgressCircle, Card } from "../components/ui";
 
 // Helper function to format seconds to MM:SS
 const formatDuration = (seconds) => {
@@ -354,9 +355,9 @@ const VideoPlayer = () => {
           <span>{error}</span>
         </div>
         <div className="mt-4">
-          <button onClick={() => navigate("/")} className="btn btn-primary">
-            Back to Courses
-          </button>
+          <Button onClick={() => navigate("/")} variant="primary">
+            Back to Module
+          </Button>
         </div>
       </div>
     );
@@ -370,9 +371,9 @@ const VideoPlayer = () => {
         <p className="text-gray-600 mb-6">
           The requested video could not be found or may have been removed.
         </p>
-        <button onClick={() => navigate("/")} className="btn btn-primary">
-          Back to Courses
-        </button>
+        <Button onClick={() => navigate("/")} variant="primary">
+          Back to Module
+        </Button>
       </div>
     );
   }
@@ -420,12 +421,9 @@ const VideoPlayer = () => {
                     The video could not be loaded. It may be unavailable or in
                     an unsupported format.
                   </p>
-                  <button
-                    onClick={() => navigate("/")}
-                    className="btn btn-primary"
-                  >
-                    Back to Courses
-                  </button>
+                  <Button onClick={() => navigate("/")} variant="primary">
+                    Back to Module
+                  </Button>
                 </div>
               ) : (
                 <video
@@ -473,66 +471,41 @@ const VideoPlayer = () => {
 
             {/* Progress circle */}
             <div className="flex justify-center mb-6">
-              <div className="relative w-32 h-32">
-                <svg className="w-full h-full" viewBox="0 0 100 100">
-                  {/* Background circle */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    fill="none"
-                    stroke="#e5e7eb"
-                    strokeWidth="8"
-                  />
-                  {/* Progress circle */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    fill="none"
-                    stroke="#4f46e5"
-                    strokeWidth="8"
-                    strokeDasharray={`${(2 * Math.PI * 45 * progress) / 100} ${
-                      2 * Math.PI * 45
-                    }`}
-                    strokeDashoffset="0"
-                    transform="rotate(-90 50 50)"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-indigo-600">
-                    {progress}%
-                  </span>
-                </div>
-              </div>
+              <ProgressCircle
+                progress={progress}
+                size="lg"
+                variant="primary"
+                animated={true}
+                strokeWidth={10}
+                className="animate-fadeIn"
+              />
             </div>
 
             {/* Progress bar */}
             <div className="mb-6">
-              <div className="progress-bar">
-                <div
-                  className="progress-bar-fill progress-bar-fill-primary"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between text-xs text-gray-600 mt-1">
-                <span>0%</span>
-                <span>50%</span>
-                <span>100%</span>
-              </div>
+              <ProgressBar
+                progress={progress}
+                variant="gradient"
+                size="lg"
+                showPercentage={true}
+                animated={true}
+              />
             </div>
 
             {/* Navigation buttons */}
             <div className="space-y-3">
-              <button
+              <Button
                 onClick={() => navigate("/")}
-                className="btn btn-outline w-full flex items-center justify-center"
+                variant="outline"
+                fullWidth
+                size="lg"
+                className="hover:shadow-md transform hover:-translate-y-1"
               >
-                <span className="mr-2">←</span> Back to LearnVista
-              </button>
+                <span className="mr-2">←</span> Back to Module
+              </Button>
 
               {progress === 100 && (
-                <div className="bg-green-100 text-green-800 p-3 rounded-md text-center">
+                <div className="bg-green-100 text-green-800 p-3 rounded-md text-center animate-fadeIn">
                   <span className="font-medium">🎉 Lesson completed!</span>
                 </div>
               )}

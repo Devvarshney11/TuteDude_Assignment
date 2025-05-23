@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { videoApi } from "../services/api";
+import {
+  Button,
+  Input,
+  ProgressBar,
+  ProgressCircle,
+  Card,
+  Badge,
+} from "../components/ui";
 
 // Helper function to group videos into modules
 const groupVideosByModule = (videos) => {
@@ -246,37 +254,38 @@ const VideoList = () => {
           </div>
 
           <div className="mt-4 md:mt-0 flex flex-col items-center">
-            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 text-indigo-800 font-bold text-xl mb-1">
-              {overallProgress}%
-            </div>
+            <ProgressCircle
+              progress={overallProgress}
+              size="sm"
+              variant="primary"
+              className="mb-1"
+            />
             <span className="text-sm text-gray-600">Overall Progress</span>
           </div>
         </div>
 
         {/* Progress bar */}
         <div className="mt-6">
-          <div className="progress-bar">
-            <div
-              className="progress-bar-fill progress-bar-fill-primary"
-              style={{ width: `${overallProgress}%` }}
-            ></div>
-          </div>
+          <ProgressBar
+            progress={overallProgress}
+            variant="primary"
+            size="md"
+            animated={true}
+          />
         </div>
       </div>
 
       {/* Search and Filter Controls */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <div className="relative w-full md:w-64">
-          <input
+        <div className="w-full md:w-64">
+          <Input
+            id="search"
             type="text"
             placeholder="Search videos..."
-            className="form-input pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            icon="🔍"
           />
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            🔍
-          </span>
         </div>
 
         <div className="w-full md:w-auto">
@@ -306,7 +315,7 @@ const VideoList = () => {
           const moduleDuration = calculateModuleDuration(moduleVideos);
 
           return (
-            <div key={moduleName} className="card">
+            <Card key={moduleName} padding={false} className="overflow-hidden">
               {/* Module Header */}
               <div
                 className="bg-gray-50 p-4 flex justify-between items-center cursor-pointer border-b"
@@ -342,15 +351,15 @@ const VideoList = () => {
                     <div className="text-sm font-medium">
                       {moduleCompletion}% complete
                     </div>
-                    <div className="w-24 bg-gray-200 rounded-full h-1.5 mt-1">
-                      <div
-                        className={`h-1.5 rounded-full ${
-                          moduleCompletion === 100
-                            ? "bg-green-500"
-                            : "bg-orange-500"
-                        }`}
-                        style={{ width: `${moduleCompletion}%` }}
-                      ></div>
+                    <div className="w-24 mt-1">
+                      <ProgressBar
+                        progress={moduleCompletion}
+                        variant={
+                          moduleCompletion === 100 ? "success" : "accent"
+                        }
+                        size="sm"
+                        animated={false}
+                      />
                     </div>
                   </div>
                   <div className="text-gray-400">{isExpanded ? "▼" : "▶"}</div>
@@ -396,17 +405,13 @@ const VideoList = () => {
 
                           {progress && (
                             <div className="mt-2 flex items-center">
-                              <div className="w-full bg-gray-200 rounded-full h-1.5 mr-2">
-                                <div
-                                  className={`h-1.5 rounded-full ${
-                                    isCompleted
-                                      ? "bg-green-500"
-                                      : "bg-orange-500"
-                                  }`}
-                                  style={{
-                                    width: `${progress.progressPercentage}%`,
-                                  }}
-                                ></div>
+                              <div className="w-full mr-2">
+                                <ProgressBar
+                                  progress={progress.progressPercentage}
+                                  variant={isCompleted ? "success" : "accent"}
+                                  size="sm"
+                                  animated={false}
+                                />
                               </div>
                               <span className="text-xs text-gray-600 whitespace-nowrap">
                                 {progress.progressPercentage}%
@@ -416,29 +421,32 @@ const VideoList = () => {
                         </div>
 
                         <div className="mt-3 md:mt-0 w-full md:w-auto">
-                          <Link
+                          <Button
+                            as={Link}
                             to={`/video/${video.id}`}
-                            className={`btn block text-center md:w-auto ${
+                            variant={
                               isCompleted
-                                ? "bg-green-500 hover:bg-green-600 text-white"
+                                ? "success"
                                 : isStarted
-                                ? "bg-orange-500 hover:bg-orange-600 text-white"
-                                : "btn-primary"
-                            }`}
+                                ? "accent"
+                                : "primary"
+                            }
+                            size="sm"
+                            className="block text-center md:w-auto"
                           >
                             {isCompleted
                               ? "Review"
                               : progress?.lastPosition > 0
                               ? "Continue"
                               : "Start"}
-                          </Link>
+                          </Button>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               )}
-            </div>
+            </Card>
           );
         })}
       </div>
