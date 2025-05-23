@@ -9,6 +9,6 @@ VALUES ('testuser', '$2b$10$ZS.c.hesEnsZG2gel4xVbeHJIWulZLUFvlnOa.VNZICaam0cSUjf
 -- Insert sample videos
 INSERT INTO videos (title, duration_seconds, url)
 VALUES
-('Introduction to JavaScript', 600, 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'),
-('Advanced React Hooks', 900, 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'),
-('Node.js Fundamentals', 1200, 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4');
+('Introduction to JavaScript', 600, 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'),
+('Advanced React Hooks', 900, 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'),
+('Node.js Fundamentals', 1200, 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4');

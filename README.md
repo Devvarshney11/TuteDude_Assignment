@@ -36,99 +36,70 @@ A full-stack web application that tracks unique watched segments of lecture vide
 - Node.js (v14 or higher)
 - MySQL (v8 or higher)
 
-### Database Setup
+### Step 1: Install Dependencies
 
-1. Make sure MySQL is running on port 3306.
-
-2. Update the database credentials in `backend/.env` if needed.
-
-3. Run the database setup script:
-
-```bash
-npm run setup:db
-```
-
-This script will create the database, tables, and insert sample data automatically.
-
-### Quick Start
-
-#### Complete Setup (Recommended)
-
-First, run the setup-everything script to set up the database:
-
-For Windows users:
-
-```bash
-setup-everything.bat
-```
-
-For Linux/Mac users:
-
-```bash
-chmod +x setup-everything.sh
-./setup-everything.sh
-```
-
-This script will:
-
-1. Create the database if it doesn't exist
-2. Create all tables if they don't exist
-3. Insert the test user with the correct password
-4. Insert sample videos
-
-Then, start the application:
-
-For Windows users:
-
-```bash
-start.bat
-```
-
-For Linux/Mac users:
-
-```bash
-chmod +x start.sh
-./start.sh
-```
-
-The start script will:
-
-1. Install all dependencies
-2. Start both the backend and frontend servers
-
-#### Manual Installation
-
-1. Install all dependencies with a single command:
+Install all required dependencies for the project:
 
 ```bash
 npm run install:all
 ```
 
-2. Set up the database:
+This command will install dependencies for the root project, backend, and frontend.
+
+### Step 2: Database Setup
+
+1. Make sure MySQL is running on port 3306.
+
+2. Create a MySQL database named `lecture_video_tracking`.
+
+3. Update the database credentials in `backend/.env` if needed.
+
+4. Run the SQL scripts in the `sql` directory:
+   - First run `schema.sql` to create the database structure
+   - Then run `seed.sql` to insert sample data
+
+```bash
+mysql -u root -p < sql/schema.sql
+mysql -u root -p < sql/seed.sql
+```
+
+Alternatively, you can use the setup script:
 
 ```bash
 npm run setup:db
 ```
 
-3. Update the user password to ensure login works:
+### Step 3: Start the Application
 
-```bash
-npm run update:password
-```
-
-4. Configure environment variables:
-
-   - The `.env` file in the backend directory already contains default settings
-   - Update the database credentials if needed
-
-5. Start the application (both backend and frontend):
+Start both the backend and frontend servers:
 
 ```bash
 npm start
 ```
 
-The backend server will run on http://localhost:5000
-The frontend will run on http://localhost:3000
+This will:
+
+- Start the backend server on http://localhost:5000
+- Start the frontend server on http://localhost:3000
+
+### Step 4: Login with Demo User
+
+Once the application is running, you can log in with the demo user:
+
+- **Username**: `testuser`
+- **Password**: `password123`
+
+### Step 5: Test Video Tracking
+
+After logging in, you can test the video tracking functionality:
+
+1. Select a video from the list
+2. Play the video
+3. Skip around to different parts using the video progress bar
+4. Pause and resume the video
+5. Observe how the progress bar updates to reflect your watched segments
+6. Navigate away and return to see that your progress is saved
+7. Notice how the video resumes from your last watched position
 
 ### Running Backend or Frontend Separately
 
@@ -143,6 +114,16 @@ If you need to run only the frontend:
 ```bash
 npm run start:frontend
 ```
+
+### Troubleshooting
+
+If you have trouble logging in, you can reset the user password:
+
+```bash
+npm run update:password
+```
+
+This ensures that the testuser account exists and has the correct password hash.
 
 ## API Documentation
 
@@ -172,26 +153,34 @@ Example:
 - After merging: [10-40], [50-60]
 - Total unique seconds watched: 40 seconds
 
-## Demo User Credentials
+## How It Works
 
-- Username: `testuser`
-- Password: `password123`
+### Interval Merging Algorithm
 
-If you have trouble logging in, you can use one of these scripts:
+The core of this application is the interval merging algorithm that tracks unique video segments watched:
 
-1. Run the `fix-login.bat` script to reset the user password directly in the database:
+1. When a user watches a video segment, the app records the start and end times
+2. These intervals are stored in the database
+3. When calculating progress, the app:
+   - Retrieves all watched intervals for the user and video
+   - Sorts them by start time
+   - Merges overlapping intervals to avoid counting the same segment twice
+   - Calculates the total unique time watched
 
-```bash
-fix-login.bat
-```
+For example:
 
-2. Run the `test-login.bat` script to test the login functionality and update the password if needed:
+- If a user watches [10-30], then [20-40], then [50-60]
+- The merged intervals would be [10-40], [50-60]
+- Total unique seconds watched: 40 seconds (not 70 seconds)
 
-```bash
-test-login.bat
-```
+### Database Schema
 
-These scripts will ensure that the testuser account exists and has the correct password hash for 'password123'.
+The application uses four main tables:
+
+- `users`: Stores user credentials
+- `videos`: Stores video metadata (title, duration, URL)
+- `watched_intervals`: Records each segment watched by a user
+- `video_progress`: Tracks overall progress and last position for each user/video
 
 ## Project Structure
 
