@@ -25,7 +25,7 @@ app.use("/api/video", videoRoutes);
 
 // Root route
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to Lecture Video Tracking API" });
+  res.json({ message: "Welcome to Learning Vista API" });
 });
 
 // Start server

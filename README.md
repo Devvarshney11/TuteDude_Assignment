@@ -1,4 +1,4 @@
-# Lecture Video Tracking Platform
+# Learning Vista
 
 A full-stack web application that tracks unique watched segments of lecture videos by users. The app only counts new parts of the video watched, merges overlapping intervals, calculates accurate watch progress, and resumes from the last watched position.
 
@@ -153,25 +153,48 @@ Example:
 - After merging: [10-40], [50-60]
 - Total unique seconds watched: 40 seconds
 
-## How It Works
+## Design Documentation
+
+### How We Track Watched Intervals
+
+The core of this application is the interval tracking and merging system that accurately measures unique video segments watched:
+
+1. **Real-time Tracking**:
+
+   - When a user plays a video, the frontend creates an interval object with start and end times
+   - As the user continues watching, the end time is continuously updated
+   - When the user pauses, seeks, or leaves the page, the interval is sent to the backend
+
+2. **Interval Storage**:
+
+   - Each watched interval is stored in the database with user ID, video ID, start time, and end time
+   - This creates a complete history of viewing patterns for analytics and accurate progress calculation
+
+3. **Optimization Techniques**:
+   - For continuous playback, we extend existing intervals rather than creating new ones
+   - We use a small tolerance (EPSILON = 0.1s) to account for timing inconsistencies
+   - Large intervals (>60s) are treated as skips and only count a small portion to prevent counting unwatched content
 
 ### Interval Merging Algorithm
 
-The core of this application is the interval merging algorithm that tracks unique video segments watched:
+To calculate accurate progress, we merge overlapping intervals to avoid counting the same segment twice:
 
-1. When a user watches a video segment, the app records the start and end times
-2. These intervals are stored in the database
-3. When calculating progress, the app:
-   - Retrieves all watched intervals for the user and video
-   - Sorts them by start time
-   - Merges overlapping intervals to avoid counting the same segment twice
-   - Calculates the total unique time watched
+1. **Sorting**: All intervals are sorted by start time
+2. **Merging Process**:
+   - Start with the first interval in the result list
+   - For each subsequent interval:
+     - If it overlaps with the last merged interval (current.startTime <= lastMerged.endTime + EPSILON), merge them by taking the maximum end time
+     - If there's a gap, add it as a new interval
+3. **Progress Calculation**:
+   - Sum the durations of all merged intervals
+   - Divide by the total video duration to get the progress percentage
 
-For example:
+**Example**:
 
-- If a user watches [10-30], then [20-40], then [50-60]
-- The merged intervals would be [10-40], [50-60]
+- User watches intervals: [10-30], [20-40], [50-60]
+- After sorting and merging: [10-40], [50-60]
 - Total unique seconds watched: 40 seconds (not 70 seconds)
+- If video is 100 seconds long, progress is 40%
 
 ### Database Schema
 
@@ -181,6 +204,40 @@ The application uses four main tables:
 - `videos`: Stores video metadata (title, duration, URL)
 - `watched_intervals`: Records each segment watched by a user
 - `video_progress`: Tracks overall progress and last position for each user/video
+
+### Challenges and Solutions
+
+During the development of Learning Vista, we encountered several challenges related to accurate video tracking:
+
+1. **Handling Video Skips**:
+
+   - **Challenge**: Users often skip through videos, which could falsely count unwatched sections.
+   - **Solution**: We implemented a maximum interval length (60 seconds) to detect skips. When a large interval is detected, we only count a small portion at the end, preventing inflation of watch time.
+
+2. **Floating Point Precision Issues**:
+
+   - **Challenge**: JavaScript's floating-point arithmetic caused inconsistencies when comparing video timestamps.
+   - **Solution**: We added a small tolerance (EPSILON = 0.1s) when comparing times and rounding timestamps to two decimal places to ensure consistent behavior.
+
+3. **Continuous Progress Updates**:
+
+   - **Challenge**: Sending too many interval updates to the server could overload it, while sending too few would make progress tracking less accurate.
+   - **Solution**: We implemented a balanced approach with:
+     - Real-time updates every 2 seconds during playback
+     - Immediate updates on pause, seek, and page leave events
+     - Interval extension for continuous playback to reduce database entries
+
+4. **Completion Detection**:
+
+   - **Challenge**: Determining when a video is truly "complete" is difficult, especially with non-linear viewing patterns.
+   - **Solution**: We implemented a dual approach:
+     - A video is marked as complete when the user has watched at least 95% of the content through tracked intervals
+     - A special completion marker is used that doesn't affect the resume position
+     - This prevents users from having to rewatch content they've already seen
+
+5. **Resume Position Accuracy**:
+   - **Challenge**: Determining the optimal position to resume playback from.
+   - **Solution**: We store the last position separately from the watched intervals, ensuring users can resume from exactly where they left off, even if that position is in the middle of a merged interval.
 
 ## Project Structure
 
