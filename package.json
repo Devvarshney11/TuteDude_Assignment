@@ -1,0 +1,28 @@
+{
+  "name": "lecture-video-tracking-platform",
+  "version": "1.0.0",
+  "description": "A full-stack web application that tracks unique watched segments of lecture videos by users",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && npm run dev",
+    "start:frontend": "cd frontend && npm run dev",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "setup:db": "node setup-db.js",
+    "update:password": "node update-user-password.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "video",
+    "tracking",
+    "react",
+    "node",
+    "express",
+    "mysql"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.1"
+  }
+}
