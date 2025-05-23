@@ -173,22 +173,32 @@ const VideoPlayer = () => {
         );
       }
 
-      // Then create a special "completion" interval that covers the entire video
-      // This ensures the progress reaches 100%
-      try {
-        // For completion, we'll use a special flag to indicate this is just for progress calculation
-        // and shouldn't affect the resume position
-        await videoApi.saveWatchedInterval(
-          parseInt(id),
-          0, // Start from the beginning
-          video.durationSeconds, // End at the full duration
-          true // Special flag indicating this is a completion marker
-        );
+      // Verify that we're actually at the end of the video (within 5% of the end)
+      const currentTime = videoRef.current.currentTime;
+      const videoDuration = video.durationSeconds;
+      const isReallyAtEnd = videoDuration - currentTime <= videoDuration * 0.05;
 
-        // Update progress to 100%
-        setProgress(100);
-      } catch (error) {
-        // Error handling is done silently
+      if (isReallyAtEnd) {
+        // Then create a special "completion" interval that covers the entire video
+        // This ensures the progress reaches 100%
+        try {
+          // For completion, we'll use a special flag to indicate this is just for progress calculation
+          // and shouldn't affect the resume position
+          await videoApi.saveWatchedInterval(
+            parseInt(id),
+            0, // Start from the beginning
+            video.durationSeconds, // End at the full duration
+            true // Special flag indicating this is a completion marker
+          );
+
+          // Update progress to 100%
+          setProgress(100);
+          console.log("Video completed, progress set to 100%");
+        } catch (error) {
+          // Error handling is done silently
+        }
+      } else {
+        console.log("Video ended event triggered but not at the end of video");
       }
 
       setCurrentInterval(null);
@@ -206,22 +216,37 @@ const VideoPlayer = () => {
           const currentTime = videoRef.current.currentTime;
           const videoDuration = video.durationSeconds;
 
-          // Check if we're near the end of the video (within 1.5 seconds)
-          const isNearEnd = videoDuration - currentTime <= 1.5;
+          // Check if we're near the end of the video (within 5% of total duration)
+          const isNearEnd =
+            videoDuration - currentTime <= videoDuration * 0.05 &&
+            currentTime / videoDuration >= 0.95;
 
           if (isNearEnd) {
             // If we're very close to the end, consider it as complete
             // This helps ensure the progress reaches 100% even if the ended event doesn't fire
             try {
-              await videoApi.saveWatchedInterval(
-                parseInt(id),
-                0, // Start from beginning
-                videoDuration, // Full duration
-                true // Special flag indicating this is a completion marker
-              );
+              // Calculate how much of the video has been watched in total
+              const watchedPercentage = currentTime / videoDuration;
 
-              // Force progress to 100%
-              setProgress(100);
+              // Only mark as complete if we've watched at least 95% of the video
+              if (watchedPercentage >= 0.95) {
+                await videoApi.saveWatchedInterval(
+                  parseInt(id),
+                  0, // Start from beginning
+                  videoDuration, // Full duration
+                  true // Special flag indicating this is a completion marker
+                );
+
+                // Force progress to 100%
+                setProgress(100);
+                console.log("Near end of video, marking as complete");
+              } else {
+                console.log(
+                  `Near end but only watched ${Math.round(
+                    watchedPercentage * 100
+                  )}%, not marking as complete yet`
+                );
+              }
             } catch (error) {
               // Error handling is done silently
             }

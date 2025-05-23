@@ -131,10 +131,23 @@ class VideoService {
         this.calculateUniqueSecondsWatched(mergedIntervals);
       console.log(`Total unique seconds watched: ${uniqueSecondsWatched}`);
 
-      // Calculate progress percentage
-      const progressPercentage = Math.round(
+      // Calculate progress percentage with a cap at 99% unless truly complete
+      let progressPercentage = Math.round(
         (uniqueSecondsWatched / video.durationSeconds) * 100
       );
+
+      // Only allow 100% if we've watched at least 95% of the video
+      // or if this is explicitly marked as a completion
+      if (
+        progressPercentage >= 100 &&
+        !isCompletion &&
+        uniqueSecondsWatched < video.durationSeconds * 0.95
+      ) {
+        progressPercentage = 99;
+        console.log(
+          `Capping progress at 99% since video is not truly complete`
+        );
+      }
       console.log(`Progress percentage: ${progressPercentage}%`);
 
       // For completion markers, we need to get the current progress to preserve the last position
@@ -212,10 +225,21 @@ class VideoService {
         };
       }
 
-      // Calculate progress percentage
-      const progressPercentage = Math.round(
+      // Calculate progress percentage with the same rules as in saveWatchedInterval
+      let progressPercentage = Math.round(
         (progress.uniqueSecondsWatched / video.durationSeconds) * 100
       );
+
+      // Only allow 100% if we've watched at least 95% of the video
+      if (
+        progressPercentage >= 100 &&
+        progress.uniqueSecondsWatched < video.durationSeconds * 0.95
+      ) {
+        progressPercentage = 99;
+        console.log(
+          `Capping progress at 99% since video is not truly complete`
+        );
+      }
 
       return {
         success: true,
