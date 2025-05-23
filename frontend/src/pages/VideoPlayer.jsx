@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { videoApi } from "../services/api";
-import { Button, ProgressBar, ProgressCircle, Card } from "../components/ui";
+import { Button, ProgressBar, ProgressCircle } from "../components/ui";
 
 // Helper function to format seconds to MM:SS
 const formatDuration = (seconds) => {
@@ -180,21 +180,30 @@ const VideoPlayer = () => {
       const isReallyAtEnd = videoDuration - currentTime <= videoDuration * 0.05;
 
       if (isReallyAtEnd) {
-        // Then create a special "completion" interval that covers the entire video
-        // This ensures the progress reaches 100%
+        // Get the current progress to check how much of the video has been watched in total
         try {
-          // For completion, we'll use a special flag to indicate this is just for progress calculation
-          // and shouldn't affect the resume position
-          await videoApi.saveWatchedInterval(
-            parseInt(id),
-            0, // Start from the beginning
-            video.durationSeconds, // End at the full duration
-            true // Special flag indicating this is a completion marker
-          );
+          const progressData = await videoApi.getVideoProgress(parseInt(id));
 
-          // Update progress to 100%
-          setProgress(100);
-          console.log("Video completed, progress set to 100%");
+          // Only mark as complete if we've watched at least 95% of the video based on tracked intervals
+          // This prevents marking as complete when skipping to the end
+          if (progressData.progressPercentage >= 95) {
+            // For completion, we'll use a special flag to indicate this is just for progress calculation
+            // and shouldn't affect the resume position
+            await videoApi.saveWatchedInterval(
+              parseInt(id),
+              0, // Start from the beginning
+              video.durationSeconds, // End at the full duration
+              true // Special flag indicating this is a completion marker
+            );
+
+            // Update progress to 100%
+            setProgress(100);
+            console.log("Video completed, progress set to 100%");
+          } else {
+            console.log(
+              `Video ended but only watched ${progressData.progressPercentage}%, not marking as complete yet`
+            );
+          }
         } catch (error) {
           // Error handling is done silently
         }
@@ -226,11 +235,14 @@ const VideoPlayer = () => {
             // If we're very close to the end, consider it as complete
             // This helps ensure the progress reaches 100% even if the ended event doesn't fire
             try {
-              // Calculate how much of the video has been watched in total
-              const watchedPercentage = currentTime / videoDuration;
+              // Get the current progress from the API to check how much of the video has been watched in total
+              const progressData = await videoApi.getVideoProgress(
+                parseInt(id)
+              );
 
-              // Only mark as complete if we've watched at least 95% of the video
-              if (watchedPercentage >= 0.95) {
+              // Only mark as complete if we've watched at least 95% of the video based on tracked intervals
+              // This prevents marking as complete when skipping to the end
+              if (progressData.progressPercentage >= 95) {
                 await videoApi.saveWatchedInterval(
                   parseInt(id),
                   0, // Start from beginning
@@ -243,9 +255,7 @@ const VideoPlayer = () => {
                 console.log("Near end of video, marking as complete");
               } else {
                 console.log(
-                  `Near end but only watched ${Math.round(
-                    watchedPercentage * 100
-                  )}%, not marking as complete yet`
+                  `Near end but only watched ${progressData.progressPercentage}%, not marking as complete yet`
                 );
               }
             } catch (error) {
