@@ -72,14 +72,13 @@ const ProgressCircle = ({
   // Calculate circle properties
   const radius = 50 - strokeWidth / 2;
   const circumference = 2 * Math.PI * radius;
-  const strokeDasharray = `${
-    (circumference * normalizedProgress) / 100
-  } ${circumference}`;
+
+  // Calculate stroke-dashoffset for proper circular progress
+  const strokeDashoffset =
+    circumference - (circumference * normalizedProgress) / 100;
 
   // Animation values for the animated attribute
-  const animationValues = `0 ${circumference};${
-    (circumference * normalizedProgress) / 100
-  } ${circumference}`;
+  const animationValues = `${circumference};${strokeDashoffset}`;
 
   return (
     <div
@@ -106,14 +105,14 @@ const ProgressCircle = ({
           stroke={`url(#${variant}Gradient)`}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset="0"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
           transform="rotate(-90 50 50)"
           className="transition-all duration-700 ease-out"
         >
           {animated && (
             <animate
-              attributeName="stroke-dasharray"
+              attributeName="stroke-dashoffset"
               dur="0.8s"
               values={animationValues}
               fill="freeze"

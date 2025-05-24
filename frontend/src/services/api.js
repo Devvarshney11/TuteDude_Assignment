@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api";
+// Get API URL from environment variables
+const API_URL =
+  `${import.meta.env.VITE_API_URL}/api` || "http://localhost:5000/api";
 
 // Configure axios
 axios.interceptors.request.use(
