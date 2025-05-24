@@ -1,8 +1,3 @@
--- Use the database
-USE lecture_video_tracking;
-
--- Insert demo user (password: password123)
--- The password hash is generated using bcrypt with 10 rounds
 INSERT INTO users (username, password_hash)
 VALUES ('testuser', '$2b$10$ZS.c.hesEnsZG2gel4xVbeHJIWulZLUFvlnOa.VNZICaam0cSUjfe');
 

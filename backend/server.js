@@ -32,7 +32,15 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-  console.log(
-    `Database connection: ${process.env.DB_HOST}:${process.env.DB_PORT || 3306}`
-  );
+
+  // Log database connection info
+  if (process.env.DATABASE_URL) {
+    console.log(`Database connection: Using DATABASE_URL connection string`);
+  } else {
+    console.log(
+      `Database connection: ${process.env.DB_HOST}:${
+        process.env.DB_PORT || 5432
+      }`
+    );
+  }
 });

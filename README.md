@@ -21,12 +21,12 @@ A full-stack web application that tracks unique watched segments of lecture vide
 ### Backend
 
 - Node.js with Express.js
-- MySQL database
+- PostgreSQL database
 - Clean Code architecture with:
   - Routes (Express route definitions)
   - Controllers (handle requests/responses)
   - Services (business logic like interval merging)
-  - Repositories (data access using MySQL)
+  - Repositories (data access using PostgreSQL)
   - Models (represent DB entities)
 
 ## Setup Instructions
@@ -34,7 +34,7 @@ A full-stack web application that tracks unique watched segments of lecture vide
 ### Prerequisites
 
 - Node.js (v14 or higher)
-- MySQL (v8 or higher)
+- PostgreSQL (v12 or higher)
 
 ### Step 1: Install Dependencies
 
@@ -48,25 +48,46 @@ This command will install dependencies for the root project, backend, and fronte
 
 ### Step 2: Database Setup
 
-1. Make sure MySQL is running on port 3306.
+1. Make sure PostgreSQL is running on port 5432.
 
-2. Create a MySQL database named `lecture_video_tracking`.
+2. Create a PostgreSQL database named `lecture_video_tracking`.
 
-3. Update the database credentials in `backend/.env` if needed.
+3. Update the database credentials in `backend/.env` with your PostgreSQL connection details:
+
+   **Option A: Using Connection String (Recommended for cloud databases)**
+
+   ```env
+   DATABASE_URL=postgresql://username:password@hostname:port/database_name
+   ```
+
+   **Option B: Using Individual Parameters**
+
+   ```env
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USER=postgres
+   DB_PASSWORD=your_password_here
+   DB_NAME=lecture_video_tracking
+   ```
+
+   **Note**: If you provide `DATABASE_URL`, the individual DB\_\* parameters will be ignored.
 
 4. Run the SQL scripts in the `sql` directory:
    - First run `schema.sql` to create the database structure
    - Then run `seed.sql` to insert sample data
 
 ```bash
-mysql -u root -p < sql/schema.sql
-mysql -u root -p < sql/seed.sql
+psql -U postgres -d lecture_video_tracking -f sql/schema.sql
+psql -U postgres -d lecture_video_tracking -f sql/seed.sql
 ```
 
-Alternatively, you can use the setup script:
+Or using psql interactive mode:
 
 ```bash
-npm run setup:db
+psql -U postgres
+\c lecture_video_tracking
+\i sql/schema.sql
+\i sql/seed.sql
 ```
 
 ### Step 3: Start the Application
