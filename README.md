@@ -2,6 +2,19 @@
 
 A full-stack web application that tracks unique watched segments of lecture videos by users. The app only counts new parts of the video watched, merges overlapping intervals, calculates accurate watch progress, and resumes from the last watched position.
 
+## Live Demo
+
+🌐 **Frontend**: [https://tute-dude-assignment-tau.vercel.app/](https://tute-dude-assignment-tau.vercel.app/)
+
+🚀 **Backend API**: [https://tutedude-assignment-mc91.onrender.com](https://tutedude-assignment-mc91.onrender.com)
+
+🗄️ **Database**: Hosted on Neon PostgreSQL
+
+### Demo Credentials
+
+- **Username**: `testuser`
+- **Password**: `password123`
+
 ## Features
 
 - **Accurate Progress Tracking**: Only counts unique seconds watched, merges overlapping intervals
@@ -17,6 +30,7 @@ A full-stack web application that tracks unique watched segments of lecture vide
 - Tailwind CSS for responsive styling
 - Axios for HTTP requests
 - React Router for navigation
+- **Deployed on**: Vercel
 
 ### Backend
 
@@ -28,6 +42,13 @@ A full-stack web application that tracks unique watched segments of lecture vide
   - Services (business logic like interval merging)
   - Repositories (data access using PostgreSQL)
   - Models (represent DB entities)
+- **Deployed on**: Render
+
+### Database
+
+- **PostgreSQL** hosted on **Neon**
+- Fully managed cloud database with automatic backups
+- Optimized for serverless applications
 
 ## Setup Instructions
 
@@ -145,6 +166,56 @@ npm run update:password
 ```
 
 This ensures that the testuser account exists and has the correct password hash.
+
+## Deployment
+
+The application is deployed across multiple cloud platforms for optimal performance and reliability:
+
+### Frontend Deployment (Vercel)
+
+- **Platform**: Vercel
+- **URL**: [https://tute-dude-assignment-tau.vercel.app/](https://tute-dude-assignment-tau.vercel.app/)
+- **Features**:
+  - Automatic deployments from Git
+  - Global CDN for fast loading
+  - Optimized for React applications
+
+### Backend Deployment (Render)
+
+- **Platform**: Render
+- **URL**: [https://tutedude-assignment-mc91.onrender.com](https://tutedude-assignment-mc91.onrender.com)
+- **Features**:
+  - Automatic deployments from Git
+  - Built-in SSL certificates
+  - Environment variable management
+
+### Database Hosting (Neon PostgreSQL)
+
+- **Platform**: Neon
+- **Type**: Serverless PostgreSQL
+- **Features**:
+  - Automatic scaling
+  - Built-in connection pooling
+  - Branching for development workflows
+  - Automatic backups
+
+### Environment Configuration
+
+The deployed application uses the following environment variables:
+
+**Frontend (.env)**:
+
+```env
+VITE_API_URL=https://tutedude-assignment-mc91.onrender.com
+```
+
+**Backend (.env)**:
+
+```env
+DATABASE_URL=postgresql://[username]:[password]@[host]/[database]
+JWT_SECRET=[secure-jwt-secret]
+PORT=5000
+```
 
 ## API Documentation
 
