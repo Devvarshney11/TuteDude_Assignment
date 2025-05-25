@@ -1,4 +1,3 @@
-import React from "react";
 import PropTypes from "prop-types";
 
 /**
@@ -77,49 +76,11 @@ const ProgressCircle = ({
   const strokeDashoffset =
     circumference - (circumference * normalizedProgress) / 100;
 
-  // Animation values for the animated attribute
-  const animationValues = `${circumference};${strokeDashoffset}`;
-
   return (
     <div
       className={`relative ${sizeClasses[size] || sizeClasses.md} ${className}`}
     >
       <svg className="w-full h-full" viewBox="0 0 100 100">
-        {/* Background circle */}
-        <circle
-          cx="50"
-          cy="50"
-          r={radius}
-          fill="none"
-          stroke="#e5e7eb" // gray-200
-          strokeWidth={strokeWidth}
-          className="transition-all duration-300"
-        />
-
-        {/* Progress circle */}
-        <circle
-          cx="50"
-          cy="50"
-          r={radius}
-          fill="none"
-          stroke={`url(#${variant}Gradient)`}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          transform="rotate(-90 50 50)"
-          className="transition-all duration-700 ease-out"
-        >
-          {animated && (
-            <animate
-              attributeName="stroke-dashoffset"
-              dur="0.8s"
-              values={animationValues}
-              fill="freeze"
-            />
-          )}
-        </circle>
-
         {/* Define gradients for each variant */}
         <defs>
           <linearGradient
@@ -191,6 +152,35 @@ const ProgressCircle = ({
             <stop offset="100%" stopColor={variantColors.danger.gradient[1]} />
           </linearGradient>
         </defs>
+
+        {/* Background circle */}
+        <circle
+          cx="50"
+          cy="50"
+          r={radius}
+          fill="none"
+          stroke="#e5e7eb" // gray-200
+          strokeWidth={strokeWidth}
+          className="transition-all duration-300"
+        />
+
+        {/* Progress circle */}
+        <circle
+          cx="50"
+          cy="50"
+          r={radius}
+          fill="none"
+          stroke={`url(#${variant}Gradient)`}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          transform="rotate(-90 50 50)"
+          className="transition-all duration-1000 ease-out"
+          style={{
+            animationDelay: animated ? "0.2s" : "0s",
+          }}
+        />
       </svg>
 
       {showPercentage && (
