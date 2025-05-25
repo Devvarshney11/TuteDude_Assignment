@@ -29,9 +29,6 @@ class VideoService {
     try {
       // Validate input
       if (startTime >= endTime) {
-        console.log(
-          `Invalid interval: startTime (${startTime}) >= endTime (${endTime})`
-        );
         return {
           success: false,
           message: "Start time must be less than end time",
@@ -47,28 +44,18 @@ class VideoService {
       // Ensure times are within video duration
       const originalEndTime = endTime;
       if (endTime > video.durationSeconds) {
-        console.log(
-          `Capping endTime from ${endTime} to ${video.durationSeconds}`
-        );
         endTime = video.durationSeconds;
       }
       if (startTime < 0) {
-        console.log(`Capping startTime from ${startTime} to 0`);
         startTime = 0;
       }
 
       // Check if the interval is too large (potential skip)
       const MAX_INTERVAL_LENGTH = 60; // 60 seconds
       if (endTime - startTime > MAX_INTERVAL_LENGTH) {
-        console.log(
-          `Large interval detected: ${
-            endTime - startTime
-          } seconds. Likely a skip.`
-        );
         // For large intervals, we'll only count a small portion at the end
         // This prevents counting skipped content
         startTime = Math.max(startTime, endTime - 5);
-        console.log(`Adjusted interval to: [${startTime}, ${endTime}]`);
       }
 
       // For real-time updates, check if this is an extension of the last interval
@@ -90,10 +77,6 @@ class VideoService {
           endTime > lastInterval.endTime;
 
         if (isExtension) {
-          console.log(
-            `This appears to be an extension of the last interval. Updating instead of creating new.`
-          );
-
           // Update the existing interval instead of creating a new one
           await watchedIntervalRepository.update(
             lastInterval.id,
@@ -120,17 +103,11 @@ class VideoService {
         userId,
         videoId
       );
-
-      console.log(`Retrieved ${intervals.length} intervals for merging`);
-
       // Merge intervals and calculate unique seconds watched
       const mergedIntervals = this.mergeIntervals(intervals);
-      console.log(`Merged into ${mergedIntervals.length} intervals`);
 
       const uniqueSecondsWatched =
         this.calculateUniqueSecondsWatched(mergedIntervals);
-      console.log(`Total unique seconds watched: ${uniqueSecondsWatched}`);
-
       // Calculate progress percentage with a cap at 99% unless truly complete
       let progressPercentage = Math.round(
         (uniqueSecondsWatched / video.durationSeconds) * 100
@@ -144,12 +121,7 @@ class VideoService {
         uniqueSecondsWatched < video.durationSeconds * 0.95
       ) {
         progressPercentage = 99;
-        console.log(
-          `Capping progress at 99% since video is not truly complete`
-        );
       }
-      console.log(`Progress percentage: ${progressPercentage}%`);
-
       // For completion markers, we need to get the current progress to preserve the last position
       let lastPosition;
 
@@ -162,24 +134,15 @@ class VideoService {
         if (currentProgress) {
           // Use the existing last position
           lastPosition = currentProgress.lastPosition;
-          console.log(
-            `Completion marker: Preserving existing last position: ${lastPosition}`
-          );
         } else {
           // If no existing progress, use a position near the beginning
           // This avoids starting from the very end when the user returns
           lastPosition = 5; // 5 seconds into the video
-          console.log(
-            `Completion marker with no existing progress: Setting safe last position: ${lastPosition}`
-          );
         }
       } else {
         // For normal intervals, use the current end time as the last position
         // This ensures we resume from where the user actually stopped watching
         lastPosition = originalEndTime;
-        console.log(
-          `Normal interval: Setting last position to current position: ${lastPosition}`
-        );
       }
 
       // Update progress in database
@@ -236,9 +199,6 @@ class VideoService {
         progress.uniqueSecondsWatched < video.durationSeconds * 0.95
       ) {
         progressPercentage = 99;
-        console.log(
-          `Capping progress at 99% since video is not truly complete`
-        );
       }
 
       return {
@@ -256,34 +216,16 @@ class VideoService {
   // Helper method to merge overlapping intervals
   mergeIntervals(intervals) {
     if (intervals.length === 0) {
-      console.log("No intervals to merge");
       return [];
     }
-
-    // Log the intervals before sorting
-    console.log(
-      "Intervals before sorting:",
-      intervals
-        .map((i) => `[${i.startTime.toFixed(2)}, ${i.endTime.toFixed(2)}]`)
-        .join(", ")
-    );
 
     // Sort intervals by start time
     const sortedIntervals = [...intervals].sort(
       (a, b) => a.startTime - b.startTime
     );
 
-    // Log the sorted intervals
-    console.log(
-      "Sorted intervals:",
-      sortedIntervals
-        .map((i) => `[${i.startTime.toFixed(2)}, ${i.endTime.toFixed(2)}]`)
-        .join(", ")
-    );
-
     // Handle edge case with only one interval
     if (sortedIntervals.length === 1) {
-      console.log("Only one interval, returning as is");
       return [...sortedIntervals]; // Return a copy to avoid reference issues
     }
 
@@ -293,16 +235,10 @@ class VideoService {
     );
 
     if (validIntervals.length === 0) {
-      console.log("No valid intervals after filtering");
       return [];
     }
 
     if (validIntervals.length < sortedIntervals.length) {
-      console.log(
-        `Filtered out ${
-          sortedIntervals.length - validIntervals.length
-        } invalid intervals`
-      );
     }
 
     const result = [validIntervals[0]];
@@ -320,37 +256,12 @@ class VideoService {
         // Merge by taking the maximum end time
         const oldEndTime = lastMerged.endTime;
         lastMerged.endTime = Math.max(lastMerged.endTime, current.endTime);
-        console.log(
-          `Merged interval [${current.startTime.toFixed(
-            2
-          )}, ${current.endTime.toFixed(
-            2
-          )}] with [${lastMerged.startTime.toFixed(2)}, ${oldEndTime.toFixed(
-            2
-          )}] -> [${lastMerged.startTime.toFixed(
-            2
-          )}, ${lastMerged.endTime.toFixed(2)}]`
-        );
       } else {
         // If there's a gap between intervals, add the current interval to the result
         // This ensures we don't count skipped sections
-        console.log(
-          `Gap detected between intervals. Adding new interval [${current.startTime.toFixed(
-            2
-          )}, ${current.endTime.toFixed(2)}]`
-        );
         result.push(current);
       }
     }
-
-    // Log the final merged intervals
-    console.log(
-      "Merged intervals:",
-      result
-        .map((i) => `[${i.startTime.toFixed(2)}, ${i.endTime.toFixed(2)}]`)
-        .join(", ")
-    );
-
     return result;
   }
 
@@ -360,15 +271,9 @@ class VideoService {
     const totalSeconds = mergedIntervals.reduce((total, interval) => {
       // Ensure we don't have negative durations due to floating point errors
       const duration = Math.max(0, interval.endTime - interval.startTime);
-      console.log(
-        `Interval [${interval.startTime.toFixed(2)}, ${interval.endTime.toFixed(
-          2
-        )}] contributes ${duration.toFixed(2)} seconds`
-      );
       return total + duration;
     }, 0);
 
-    console.log(`Total unique seconds watched: ${totalSeconds.toFixed(2)}`);
     return totalSeconds;
   }
 }

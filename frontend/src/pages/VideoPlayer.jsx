@@ -27,6 +27,9 @@ const VideoPlayer = () => {
   // Track if the video is currently playing
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // State to track if we need to resume video position
+  const [resumePosition, setResumePosition] = useState(null);
+
   // Fetch video data and progress
   useEffect(() => {
     const fetchVideoData = async () => {
@@ -42,8 +45,8 @@ const VideoPlayer = () => {
 
         setProgress(progressData.progressPercentage);
 
-        // Set video to start at last position if available
-        if (progressData.lastPosition > 0 && videoRef.current) {
+        // Store the resume position to be set when video metadata loads
+        if (progressData.lastPosition > 0) {
           // Make sure we don't resume too close to the end
           // If we're within 5 seconds of the end, start 10 seconds earlier to give context
           // If we're at the very end, start from 10 seconds before the end
@@ -54,12 +57,7 @@ const VideoPlayer = () => {
             safePosition = Math.max(0, videoData.durationSeconds - 10);
           }
 
-          // Set the current time after a short delay to ensure the video is ready
-          setTimeout(() => {
-            if (videoRef.current) {
-              videoRef.current.currentTime = safePosition;
-            }
-          }, 500);
+          setResumePosition(safePosition);
         }
 
         setLoading(false);
@@ -71,6 +69,46 @@ const VideoPlayer = () => {
 
     fetchVideoData();
   }, [id]);
+
+  // Handle video metadata loaded event to set resume position
+  const handleLoadedMetadata = () => {
+    if (resumePosition !== null && videoRef.current) {
+      try {
+        videoRef.current.currentTime = resumePosition;
+        setResumePosition(null); // Clear the resume position after setting it
+      } catch (error) {
+        console.error("Error setting video resume position:", error);
+      }
+    }
+  };
+
+  // Fallback effect to set resume position if loadedmetadata event doesn't fire
+  useEffect(() => {
+    if (resumePosition !== null && videoRef.current && video) {
+      // Wait a bit for the video to be ready, then try to set the position
+      const timeoutId = setTimeout(() => {
+        if (resumePosition !== null && videoRef.current) {
+          try {
+            // Check if the video duration is available (indicates metadata is loaded)
+            if (
+              videoRef.current.duration &&
+              !isNaN(videoRef.current.duration)
+            ) {
+              videoRef.current.currentTime = resumePosition;
+              setResumePosition(null);
+            }
+          } catch (error) {
+            console.error(
+              "Error setting video resume position (fallback):",
+              error
+            );
+          }
+        }
+      }, 1000); // Wait 1 second as fallback
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [resumePosition, video]);
 
   // Handle video play event
   const handlePlay = () => {
@@ -198,17 +236,12 @@ const VideoPlayer = () => {
 
             // Update progress to 100%
             setProgress(100);
-            console.log("Video completed, progress set to 100%");
           } else {
-            console.log(
-              `Video ended but only watched ${progressData.progressPercentage}%, not marking as complete yet`
-            );
           }
         } catch (error) {
           // Error handling is done silently
         }
       } else {
-        console.log("Video ended event triggered but not at the end of video");
       }
 
       setCurrentInterval(null);
@@ -252,11 +285,7 @@ const VideoPlayer = () => {
 
                 // Force progress to 100%
                 setProgress(100);
-                console.log("Near end of video, marking as complete");
               } else {
-                console.log(
-                  `Near end but only watched ${progressData.progressPercentage}%, not marking as complete yet`
-                );
               }
             } catch (error) {
               // Error handling is done silently
@@ -444,6 +473,7 @@ const VideoPlayer = () => {
                   onPause={handlePause}
                   onSeeked={handleSeeked}
                   onEnded={handleEnded}
+                  onLoadedMetadata={handleLoadedMetadata}
                   onError={() => setVideoError(true)}
                 >
                   <source src={video.url} type="video/mp4" />

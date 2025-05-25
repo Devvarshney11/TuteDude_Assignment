@@ -31,11 +31,6 @@ class WatchedIntervalRepository {
         "INSERT INTO watched_intervals (user_id, video_id, start_time, end_time) VALUES ($1, $2, $3, $4) RETURNING id",
         [userId, videoId, startTime, endTime]
       );
-
-      console.log(
-        `Created new interval with ID ${result.rows[0].id}: [${startTime}, ${endTime}]`
-      );
-
       return new WatchedInterval(
         result.rows[0].id,
         userId,
@@ -51,10 +46,6 @@ class WatchedIntervalRepository {
 
   async update(intervalId, startTime, endTime) {
     try {
-      console.log(
-        `Updating interval ${intervalId} to [${startTime}, ${endTime}]`
-      );
-
       await db.query(
         "UPDATE watched_intervals SET start_time = $1, end_time = $2 WHERE id = $3",
         [startTime, endTime, intervalId]
